@@ -8,7 +8,7 @@ make btable, replace toc pkg readme version(1.0.0)                           ///
      author("Lukas Bütikofer")                                              ///
      affiliation("CTU Bern")                                                 ///
      email("lukas.buetikofer@ctu.unibe.ch")                                  ///
-     url("")                                                                 ///
+     url("https://github.com/CTU-Bern/btable")                               ///
      title("btable")                                                         ///
      description("Summary tables")                                           ///
      install("btable.ado;btable.sthlp;btable_format.ado;btable_format.sthlp") ///

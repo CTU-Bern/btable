@@ -3,7 +3,7 @@
 // DO NOT FORGET to update the version of the package, if changed!
 // for more information visit http://github.com/haghish/github
 
-make btable, replace toc pkg readme version(1.0.1)                           ///
+make btable, replace toc pkg readme version(1.0.2)                           ///
      license("Academic Free License v3.0")                                   ///
      author("Lukas Bütikofer")                                              ///
      affiliation("CTU Bern")                                                 ///
@@ -12,4 +12,4 @@ make btable, replace toc pkg readme version(1.0.1)                           ///
      title("btable")                                                         ///
      description("Summary tables")                                           ///
      install("btable.ado;btable.sthlp;btable_format.ado;btable_format.sthlp;RMST.ado;RMST.sthlp;wmwTest.ado;wmwTest.sthlp") ///
-     iancillary("")                                                         
+     ancillary("")                                                         

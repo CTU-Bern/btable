@@ -2190,8 +2190,8 @@ foreach var of local varlist {
 						if ("`hlmdci'"=="lehmann") {
 							cap npshift `var' if `touse3', by(`grrc_rev') level(`level')
 							local cend_diff= r(theta)
-							local cend_lci= r(theta_u)
-							local cend_uci= r(theta_l)		
+							local cend_lci= r(theta_l)
+							local cend_uci= r(theta_u)		
 						}
 						else {
 							cap cendif `var' if `touse3', by(`grrc') level(`level')

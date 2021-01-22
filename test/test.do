@@ -197,7 +197,7 @@ foreach i in "p_ttest" "p_ranksum" "p_qreg" "meand" "meand_lci" "meand_uci" "med
 }
 foreach i in "hlmd" "hlmd_lci" "hlmd_uci"  {
 	di "lehmann`i' == `lehmann`i''"
-	cap assert `i' == `lehmann`i''
+	assert `i' == `lehmann`i''
 }
 
 foreach i in "jackknife" "delong" "bamber" "hanley" {

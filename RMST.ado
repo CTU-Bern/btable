@@ -1,9 +1,8 @@
 /*********************************
 RMST
-Calculates restricted mean surivival time and its difference between groups with three methods
-1) non-parametric integration of Kaplan-Meier curves via stci
+Calculates restricted mean survival time and its difference between groups with three methods
 
-	would be the same as strmst2 but hat seems not correct
+1) non-parametric integration of Kaplan-Meier curves via stci
 
 2) flexible parametric survival models in each group with 2 df on the cumulative hazard scale according to
 
@@ -11,11 +10,6 @@ Calculates restricted mean surivival time and its difference between groups with
 	Royston, P. & Parmar, M. K. 
 	Restricted mean survival time: an alternative to the hazard ratio for the design and analysis of randomized trials with a time-to-event outcome 
 	BMC Med Res Methodol, Springer Nature, 2013, 13
-
-	Flexible parametric models are suitable tools for the purpose, because, for example, a
-	cumulative hazards model with 3 d.f. fitted to each treatment arm separately appears to give an adequate fit to
-	a wide variety of survival curves. 
-	Proportional hazards is not assumed. 
 	
 	Royston2011
 	Royston, P. & Parmar, M. K. 

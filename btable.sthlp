@@ -370,7 +370,7 @@ if the corresponding effect measure is not included in {cmdab:effect(}{it:{help 
 {opt mwsci(mwscispec)} specifies the type of confidence interval for the Mann-Whitney statistic. Possible options are 
 	{it:fay} (compatible asymptotic confidence interval from {help btable##Fay2018:Fay and Malinovsky, 2018}, the default),
 	{it:delong} ({help btable##Delong1988:DeLong, DeLong, and Clarke-Pearson, 1988}),
-	{it:jackknife} ({help btable##Newson2006b:Newson, 2006b})
+	{it:jackknife} ({help btable##Newson2006b:Newson, 2006b}),
 	{it:bamber} ({help btable##Bamber1975:Bamber, 1975}) and 
 	{it:hanley} ({help btable##Hanley1982:Hanley and McNeil, 1982}). {p_end}
 

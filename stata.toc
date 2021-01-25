@@ -1,0 +1,9 @@
+v 1.0.2
+d Materials by Lukas Bütikofer
+d CTU Bern
+d lukas.buetikofer@ctu.unibe.ch
+d https://github.com/CTU-Bern/btable
+
+d 'btable': Summary tables
+
+p btable

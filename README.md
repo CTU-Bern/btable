@@ -30,8 +30,22 @@ In order to install `btable` from github the github-package is required:
 
 You can then install the development version of `btable` with:
 
-   github install CTU-Bern/btable
+	github install CTU-Bern/btable
 
+
+Example
+------------
+
+	# load example dataset
+	sysuse auto2
+	
+	# generate table
+	tempfile rawtab
+	btable price mpg rep78 headroom, by(foreign) saving("`rawtab'")
+	
+	# format table 
+	btable_format using "`rawtab'", clear
+	
 
 Author
 ------

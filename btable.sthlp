@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 1.0.0  26mar2017}{...}
+{* *! version 1.0.0  26jan2021}{...}
 {hline}
 {cmd:help btable} {right:also see:  {help btable_format}}
 {hline}

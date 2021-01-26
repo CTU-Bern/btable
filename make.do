@@ -3,7 +3,7 @@
 // DO NOT FORGET to update the version of the package, if changed!
 // for more information visit http://github.com/haghish/github
 
-make btable, replace toc pkg readme version(1.0.2)                           ///
+make btable, replace toc pkg readme version(1.0.3)                           ///
      license("Academic Free License v3.0")                                   ///
      author("Lukas Bütikofer")                                              ///
      affiliation("CTU Bern")                                                 ///

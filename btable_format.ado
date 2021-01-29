@@ -1,17 +1,4 @@
-/*********************************
-*formatting baseline table
-*to use after btable
-*************************************
-*Lukas Bütikofer
-*created 14.04.2016
-*last version: 08.01.2021
-***********************************/
-
-
-******************************
-*btable_format
-*************************	
-	
+*! version 1.0.0 26jan2021
 cap program drop btable_format
 program btable_format, nclass
 

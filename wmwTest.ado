@@ -1,15 +1,4 @@
-/*********************************
-wmwTest
-asymptotic CI for the Mann-Whitney statistic adapted from function wmwTest of R-package asht
-based on
-Fay, Michael P., and Yaakov Malinovsky. 
-"Confidence intervals of the Mann-Whitney parameter that are compatible with the Wilcoxon-Mann-Whitney test." 
-Statistics in medicine 37.27 (2018): 3991-4006.
-Author: Lukas Bütikofer
-Created 14.04.2016
-Last version: 22.01.2021
-***********************************/
-
+*! version 1.0.0 26jan2021
 cap program drop wmwTest
 program wmwTest, rclass
 version 15

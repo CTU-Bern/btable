@@ -1,12 +1,4 @@
-/*********************************
-*baseline table
-*************************************
-*Lukas Bütikofer
-*created 14.04.2016
-*last version: 15.09.2020
-***********************************/
-	
-
+*! version 1.0.0 26jan2021
 cap program drop btable
 program btable, nclass
         

@@ -1,9 +1,9 @@
-v 1.0.3
+v 1.0.4
 d 'BTABLE': btable
 d 
 d Summary tables
 d 
-d Distribution-Date:   20210129
+d Distribution-Date:   20210223
 d License: Academic Free License v3.0
 d 
 F RMST.ado
@@ -12,5 +12,7 @@ F btable.ado
 F btable.sthlp
 F btable_format.ado
 F btable_format.sthlp
+F empty_line.ado
+F empty_line.sthlp
 F wmwTest.ado
 F wmwTest.sthlp

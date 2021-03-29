@@ -1,4 +1,4 @@
-*! version 1.0.0 26jan2021
+*! version 1.0.1 29mar2021
 cap program drop btable_format
 program btable_format, nclass
 
@@ -106,11 +106,11 @@ if "`test'"!=""  {
 
 *varname that corresponds to variable type:
 
-local key conti cat count tte 
+local key conti cat count tte miss
 foreach k of local key {
 	qui count if varname == "`k'"
 	if `r(N)'>0 {
-		dis as error "Variable types (conti, cat, count and tte) are not allowed as variable names."
+		dis as error "Variable types (conti, cat, count, tte) and miss are not allowed as variable names."
 		dis as error "Please use another name than `k'."
 		local exit 1
 	}
@@ -744,7 +744,7 @@ forvalues mrow = 1/`nrows' {
 	
 	*ft_type
 	**************
-	genvars2, input(`ft_type') gen(`ft_typev')
+	genvars2, input(`ft_type') gen(`ft_typev') addmeas(miss)
 	
 	//list varname `ft_typev'
 	
@@ -1649,7 +1649,8 @@ if "`p_all'"=="" {
 
 apply_design_var, nrowvar(`nrowvar') design(`design') inset_row("`inset_row'") inset("`inset'") ///
 	nonmiss(`nonmiss') varname_sp(`varname_sp') denom(`denom') ///
-	namemiss(`namemiss') digits_miss(`digits_miss') digits_type_miss(`digits_type_miss') maxdec_miss(`maxdec_miss')
+	namemiss(`namemiss') digits_miss(`digits_miss') digits_type_miss(`digits_type_miss') maxdec_miss(`maxdec_miss') ///
+	ft_type(`ft_type') catdigits0(`catdigits0')
 	
 	
 *headers
@@ -2113,10 +2114,13 @@ end
 *function to get information from input strings
 ***************************************
 
+*generating variables
+************************
+
 cap program drop genvars2
 program genvars2, nclass
 version 16
-syntax, GENerate(name) [input(string) NOSTRing addmeas(string)]
+syntax, GENerate(name) [input(string) NOSTRing addmeas(string) addkey(string)]
 
 if "`nostring'" == "" { 
 	cap gen `generate'=""
@@ -2143,7 +2147,7 @@ if "`input'"!="" {
 			while `nivl'==0 {
 			
 			
-				if inlist("`vl'","conti","cat","count","tte") {
+				if inlist("`vl'","conti","cat","count","tte","`addkey'") {
 					if "`nostring'" == "" {
 						qui replace `generate' = `generate' + "`next' " ///
 							if vtype=="`vl'" & strpos("`input'",varname)==0
@@ -2175,6 +2179,58 @@ if "`input'"!="" {
 	}
 }
 end
+
+
+*generating locals 
+************************
+
+cap program drop genloc2
+program genloc2, rclass
+version 16
+syntax, input(string) key(string) [desclist(string)]
+
+local input = substr("`input'",strpos("`input'","`key'"),.)
+
+	cap levelsof varname, local(vlev)
+	local vlev conti cat count tte `vlev'
+	local i = 2
+	local wi: word `i' of `input'
+	local out
+	local nivl: list wi in vlev
+	
+	while `nivl'==0 {
+		local out `out' `wi'
+		local i = `i' + 1
+		local wi: word `i' of `input'
+		local nivl: list wi in vlev
+	}			
+
+if "`desclist'"=="" {
+	//local desclist nlev ntot pr prlci pruci prop proplci propuci perc perclci percuci
+	local desclist nlev ntot prop perc
+}
+
+local ft `out'
+//local ft = subinstr("`ft'","perc","perc%",.)
+foreach desc of local desclist {
+	local ft = subinstr("`ft'","`desc'","%",1)
+}
+
+local ftl=strtrim(subinstr("`ft'","%","",.))
+local nchar = strlen("`ftl'")
+
+local meas `out'
+forvalues i = 1/`nchar' {
+	local fti = substr("`ftl'",`i',1)
+	local meas = subinstr("`meas'","`fti'","",1)
+}
+
+return local out `out'
+return local ft `ft'
+return local meas `meas'
+
+end
+
 
 /**********************************************************************************************************************/
 
@@ -2217,7 +2273,12 @@ foreach v of local vars {
 	tempvar `v't
 	cap confirm variable ``v''
 	if _rc {
-		qui gen ``v't' = .
+		if ("`v'"=="digits_type") {
+			qui gen ``v't' = ""
+		}
+		else {		
+			qui gen ``v't' = .
+		}	
 	}
 	else {
 		qui gen ``v't' = ``v''
@@ -2445,7 +2506,7 @@ cap program drop formatting2
 program formatting2, nclass
 version 16
 syntax varlist [if] [in], GENerate(name) [type(string) digits(string) digits_type(string) maxdec(string) ///
-	rm_perc add_perc ft(string) dig_force01 dig_force02 dig_force03 dig_force04 dig_force05]
+	rm_perc add_perc ft(string) dig_force0(string) CATDigits0(string)]
 
 tokenize `varlist'
 marksample touse, novarlist
@@ -2706,10 +2767,21 @@ if inlist("`type'","","ci","mean","median") {
 	}
 		
 
-	//forec 0 option	
+	//force 0 option	
 	forvalues i=1/`wc' {	
-		if "`dig_force0`i''"!="" {
+		if inlist("`i'","`dig_force0'") {
 			qui replace `digform`i''="%20.0f"
+		}
+	
+		//catdigits0, only if type==""
+		if "`type'"=="" {
+			if "`catdigits0'"!="" {
+				local cdwc: word count `catdigits0'
+				forvalues k=1/`cdwc' {
+					local cdk: word `k' of `catdigits0'
+					qui replace `digform`i''="%20.0f" if inlist(`cdk',``i'')
+				}
+			}
 		}
 	}
 	
@@ -3143,7 +3215,8 @@ end
 cap program drop apply_design_var
 program apply_design_var, nclass
 syntax [, nrowvar(varname) design(string) inset(string) inset_row(string) nonmiss(string) varname_sp(varname) ///
-	namemiss(string) denom(string) digits_miss(string) digits_type_miss(string) maxdec_miss(string) ]
+	namemiss(string) denom(string) digits_miss(string) digits_type_miss(string) maxdec_miss(string) ///
+	ft_type(string) CATDigits0(string)]
 
 
 if "`nrowvar'"=="" {
@@ -3225,24 +3298,65 @@ cap replace desc_info="n (%)" if `lastrow'==1 & `miss'==1
 foreach var of local elist {
 	cap replace `var' = "" if `lastrow'==1 & `miss'==1
 }
+
  
+cap genloc2, input(`ft_type') key(miss)
+if !_rc {
+	local meas `r(meas)'
+	local ftm `r(ft)'
+	local outm `r(out)'
+	local outm = subinstr("`outm'","nlev","n",.)
+	local outm = subinstr("`outm'","ntot","N",.)
+	local outm = subinstr("`outm'","perc","%",.)
+	local outm = subinstr("`outm'","prop","proportion",.)
+	local outm = subinstr("`outm'","%%","%",.) 
+} 
+else {
+	local meas nlev perc
+	local ftm % (%%)
+	local outm n (%)
+}
+
+
 foreach var of varlist ntot* {
 	
 	local pos=strpos("`var'","_")+1
 	local na=substr("`var'",`pos',.)
-	tempvar nmiss_`na'
-	tempvar outh
+		
+	tempvar nlev ntot prop perc 
+	tempvar outh 
 	
-	qui gen `nmiss_`na'' = ntot_`na' - nnonmiss_`na'
-
-	//default 
-	//dis "`digits_miss', `digits_type_miss', `maxdec_miss'"
-	formatting2 `nmiss_`na'' ntot_`na' if `lastrow'==1 & `miss'==1, ///
-						type(cat) gen(`outh') ft(`ft_cat') ///
-						digits(`digits_miss') digits_type(`digits_type_miss') maxdec(`maxdec_miss')
-	//list `outh'					
+	qui gen `nlev' = ntot_`na' - nnonmiss_`na'
+	qui gen `ntot' = ntot_`na'
+	qui gen `prop' = `nlev'/`ntot'
+	qui gen `perc' = `nlev'/`ntot'*100
+	local vc
+	local digforce
+	local j = 0
+	foreach v of local meas {
+		local vc `vc' ``v''
+		local j = `j' + 1
+		if inlist("`v'","nlev","ntot") {
+			local digforce `digforce' `j'
+		}
+	}
+	
+	//standard if missing
+	if "`vc'"=="" {
+		local vc `nlev' `perc'
+		local digforce 1
+	}
+	
+	//list varname `vc' `lastrow' `miss'
+	formatting2 `vc' if `lastrow'==1 & `miss'==1, ///
+		gen(`outh') ft(`ftm') ///
+		digits(`digits_miss') digits_type(`digits_type_miss') maxdec(`maxdec_miss') ///
+		dig_force0(`digforce') catdigits0(`catdigits0')
+				
 	qui replace out_`na' = `outh' if `lastrow'==1 & `miss'==1
-	qui drop `nmiss_`na''
+	qui replace desc_info = "`outm'" if `lastrow'==1 & `miss'==1
+	
+	qui drop `nlev' `ntot' `prop' `perc' 
 } 
 
 *expand for more than one descriptive
@@ -3353,20 +3467,45 @@ qui replace desc_info="n (%)" if  inlist(vtype,"conti","tte","count") & `srow'==
 foreach var of local elist {
 	cap replace `var' = "" if  inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1
 }
+
 foreach var of varlist ntot* {
 		
 	local pos=strpos("`var'","_")+1
 	local na=substr("`var'",`pos',.)
-	tempvar nmiss_`na'
-	tempvar outh
+		
+	tempvar nlev ntot prop perc 
+	tempvar outh 
 	
-	qui gen `nmiss_`na'' = ntot_`na' - nnonmiss_`na'
-
-	formatting2 `nmiss_`na'' ntot_`na' if  inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1, ///
-						type(cat) gen(`outh') ft(`ft_cat') ///
-						digits(`digits_miss') digits_type(`digits_type_miss') maxdec(`maxdec_miss')
+	qui gen `nlev' = ntot_`na' - nnonmiss_`na'
+	qui gen `ntot' = ntot_`na'
+	qui gen `prop' = `nlev'/`ntot'
+	qui gen `perc' = `nlev'/`ntot'*100
+	local vc
+	local digforce
+	local j = 0
+	foreach v of local meas {
+		local vc `vc' ``v''
+		local j = `j' + 1
+		if inlist("`v'","nlev","ntot") {
+			local digforce `digforce' `j'
+		}
+	}
+	
+	//standard if missing
+	if "`vc'"=="" {
+		local vc `nlev' `perc'
+		local digforce 1
+	}
+	
+	formatting2 `vc' if  inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1, ///
+						gen(`outh') ft(`ftm') ///
+						digits(`digits_miss') digits_type(`digits_type_miss') maxdec(`maxdec_miss') ///
+						dig_force0(`digforce') catdigits0(`catdigits0')
+						
 	qui replace out_`na' = `outh' if  inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1	
-	qui drop `nmiss_`na''
+	qui drop `nlev' `ntot' `prop' `perc' 
+	
+	qui replace desc_info = "`outm'" if  inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1
 }
 	
 

@@ -184,15 +184,16 @@ P-values are only available if {it:groupvar} used with {cmd:btable} had at least
 
 {marker descspec}{...}
 {phang}{opt des:criptive(descspec)} specifies type and format of the descriptive statistic for a variable category 
-	(i.e. continuous, categorical, count or time-to-event) or a specific variable defined by {varname} from 
-	the original datafile (which corresponds to variable {it:varname} in the {cmd:using} file). 
+	(i.e. continuous, categorical, count or time-to-event), a specific variable defined by {varname} from 
+	the original datafile (which corresponds to variable {it:varname} in the {cmd:using} file)
+	or the rows with missings (if {cmd:design} is {it:missing}. 
 
 {phang2}
 {it:descspec} has the following syntax: {it:varspec statistic} [{it:varspec statistic} ...]
 
 {pmore}
-where {it:varspec} is {cmdab:cat}, {cmdab:conti}, {cmd:count}, {cmd:tte} or {varname}, and
-	{it:statistic} is any combination of the available descriptives (or further variables from the {cmd:using} file). 
+where {it:varspec} is {cmdab:cat}, {cmdab:conti}, {cmd:count}, {cmd:tte}, {it:varname} or {cmdab:miss}, 
+	and {it:statistic} is any combination of the available descriptives (or further variables from the {cmd:using} file). 
 	Available descriptives are:
 
 {phang3}
@@ -209,19 +210,26 @@ where {it:varspec} is {cmdab:cat}, {cmdab:conti}, {cmd:count}, {cmd:tte} or {var
 		
 {phang3}				
 	{cmd:nevents} (number of events), {cmd:etime} (exposure time), and 
-	{cmd:ir} (incidence rate) and confidence intervals ({cmd:irlci} and {cmd:iruci}) for count variables, and
+	{cmd:ir} (incidence rate) and confidence intervals ({cmd:irlci} and {cmd:iruci}) for count variables,
 
 {phang3}			
 	{cmd:nfails} (number of failures), {cmd:stime} (follow-up time), 
 	{cmd:st50} (median survival time) and confidence intervals ({cmd:st50lci} and {cmd:st50uci}) or
 	lower and upper quartile ({cmd:st25} and {cmd:st75}), and 
 	{cmd:rmst} (restricted mean survival time) and confidence intervals ({cmd:rmstlci} and {cmd:rmstuci})
-	for time-to-event variables.
+	for time-to-event variables and
+	
+{phang3}	
+	{cmd:nlev} (number of missing observations), 
+	{cmd:ntot} (total number of observation), 
+	{cmd:perc} (percentage missing),
+	and {cmd:prop} (proportion missing)
+	for the rows with missing.
 		
 {pmore}		
 The defaults are 
 	mean (sd) for {it:varspec} {cmdab:conti},
-	nlev (perc%) for {it:varspec} {cmdab:cat},
+	nlev (perc%) for {it:varspec} {cmdab:cat} and {it:varspec} {cmdab:miss},
 	nevents (etime) for {it:varspec} {cmdab:count} and
 	nfails (stime) for {it:varspec} {cmdab:tte}.
 	

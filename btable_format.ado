@@ -1,4 +1,4 @@
-*! version 1.0.1 29mar2021
+*! version 1.0.2 01apr2021
 cap program drop btable_format
 program btable_format, nclass
 
@@ -3461,9 +3461,7 @@ qui gen `nc' = `expf' - `miss'
 
 
 *missings in last row		
-qui replace levlabel="`inset'" + "missing" + "`inset_row'" + "n (%)"  ///
-	 if inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1
-qui replace desc_info="n (%)" if  inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1
+
 foreach var of local elist {
 	cap replace `var' = "" if  inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1
 }
@@ -3508,6 +3506,9 @@ foreach var of varlist ntot* {
 	qui replace desc_info = "`outm'" if  inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1
 }
 	
+qui replace levlabel="`inset'" + "missing" + "`inset_row'" + desc_info  ///
+	 if inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1
+
 
 *all the other rows
 

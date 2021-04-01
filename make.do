@@ -3,7 +3,17 @@
 // DO NOT FORGET to update the version of the package, if changed!
 // for more information visit http://github.com/haghish/github
 
-make btable, replace toc pkg version(1.0.5)                           ///
+
+*run test
+cd "test"
+
+do "test.do"
+
+
+*generate make file 
+cd ".."
+
+make btable, replace toc pkg version(1.0.6)                           ///
      license("Academic Free License v3.0")                                   ///
      author("Lukas Bütikofer")                                              ///
      affiliation("CTU Bern")                                                 ///

@@ -200,8 +200,7 @@ foreach i in "jackknife" "delong" "bamber" "hanley" {
 
 ** formatting
 
-btable_format using "`file1'"
+btable_format using "`file1'", clear
 
 
-btable_format using "`file2'"
-
+btable_format using "`file2'", clear

@@ -1,12 +1,4 @@
-/*********************************
-*baseline table
-*************************************
-*Lukas Bütikofer
-*created 14.04.2016
-*last version: 15.09.2020
-***********************************/
-	
-
+*! version 1.0.1 29mar2021
 cap program drop btable
 program btable, nclass
         
@@ -90,9 +82,9 @@ if "`lr'"!="" {
 }
 
 *varname that corresponds to variable type:
-local key conti cat count tte 
+local key conti cat count tte miss
 foreach v of local varlist {
-	cap assert !inlist("`v'","conti","cat","count","tte")
+	cap assert !inlist("`v'","conti","cat","count","tte","miss")
 	if _rc {
 		dis as text "Variable name `v' corresponds to a variable type. May cause problems with btable_format."
 	}

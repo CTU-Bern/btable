@@ -1,34 +1,4 @@
-/*********************************
-RMST
-Calculates restricted mean survival time and its difference between groups with three methods
-
-1) non-parametric integration of Kaplan-Meier curves via stci
-
-2) flexible parametric survival models in each group with 2 df on the cumulative hazard scale according to
-
-	Royston2013
-	Royston, P. & Parmar, M. K. 
-	Restricted mean survival time: an alternative to the hazard ratio for the design and analysis of randomized trials with a time-to-event outcome 
-	BMC Med Res Methodol, Springer Nature, 2013, 13
-	
-	Royston2011
-	Royston, P. & Parmar, M. K. 
-	The use of restricted mean survival time to estimate the treatment effect in randomized clinical trials 
-	when the proportional hazards assumption is in doubt 
-	Statistics in medicine, Wiley Online Library, 2011, 30, 2409-2421
-
-3) pseudovalues according to Parner2010:
- 
-	Parner, Erik T and Andersen, Per K
-	Regression analysis of censored data using pseudo-observations
-	The Stata Journal 10:3, 2010
-	
-Author: Lukas Bütikofer
-Created 14.04.2016
-Last version: 22.01.2021
-***********************************/
-
-
+*! version 1.0.0 26jan2021
 cap program drop RMST
 program RMST, rclass
 

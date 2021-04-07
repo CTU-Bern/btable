@@ -2,7 +2,7 @@
 cap program drop empty_line
 program empty_line, rclass 
 version 16
-syntax [if] [in] [, GENerate(name) position(string)]
+syntax [if] [in] [, GENerate(name) POSition(string)]
 
 marksample touse	
 tempvar seq

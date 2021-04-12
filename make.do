@@ -7,7 +7,7 @@
 *run test
 cd "test"
 
-do "test.do"
+do "00_masterfile.do"
 
 
 *generate make file 

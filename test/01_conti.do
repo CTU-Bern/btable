@@ -1,15 +1,4 @@
-
-** OPEN STATA VIA THE DO FILE (sets the working directory appropriately)
-
-adopath ++ ".."
-
-* help for btable
-h btable
-
-* help for btable_format
-h btable_format
-
-
+** OPEN STATA VIA THE MASTERFILE (sets the working directory appropriately and loads btable)
 
 
 

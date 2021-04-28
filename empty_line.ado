@@ -1,8 +1,8 @@
-*! version 1.0.0 12feb2021
+*! version 1.0.1 28apr2021
 cap program drop empty_line
 program empty_line, rclass 
 version 16
-syntax [if] [in] [, GENerate(name) POSition(string)]
+syntax [if] [in] [, Generate(name) POSition(string)]
 
 marksample touse	
 tempvar seq

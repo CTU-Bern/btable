@@ -49,7 +49,7 @@ You must {cmd:stset} your data before using {cmd:RMST}; see {manhelp stset ST}.{
 {dlgtab:Main}
 
 {phang}
-{opt tmax(#)}} specifies the restriction or truncation time at which the restricted mean survival time is
+{opt tmax(#)} specifies the restriction or truncation time at which the restricted mean survival time is
 	calculated. If not given, the longest observed event time (if {cmd:groupvar} is not specified)
 		or the minimum of the longest observed event times in both groups is used.
 

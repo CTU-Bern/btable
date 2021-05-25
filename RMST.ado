@@ -1,4 +1,4 @@
-*! version 1.0.0 26jan2021
+*! version 1.0.1 25may2021
 cap program drop RMST
 program RMST, rclass
 

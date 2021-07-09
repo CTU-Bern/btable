@@ -1,4 +1,4 @@
-*! version 1.0.0 26jan2021
+*! version 1.0.1 25may2021
 cap program drop RMST
 program RMST, rclass
 
@@ -60,9 +60,9 @@ if "`pseudo'" != "" {
 if "`varlist'"=="" {
 
 	if "`tmax'"=="" {
-		qui sum _t if `touse'
+		qui sum _t if _d==1 & `touse'
 		local tmax=`r(max)'
-		dis as text "tmax missing, longest observed time was used: `=string(`tmax',"%4.2f")'"
+		dis as text "tmax missing, longest observed event time was used: `=string(`tmax',"%4.2f")'"
 	} 
 	
 	return scalar tmax=`tmax'
@@ -171,13 +171,13 @@ else {
 	if "`tmax'"=="" {
 		local counter=0
 		foreach l of local lev {
-			qui sum _t if `varlist'==`l'
+			qui sum _t if `varlist'==`l' & _d==1 & `touse'
 			local m`counter'=`r(max)'
 			local counter=`counter'+1
 		}
 		local tmax=min(`m0',`m1')	
 		dis as text ///
-			"tmax missing, minimum of the longest observed times in both groups was used (`=string(`tmax',"%4.2f")')."
+			"tmax missing, minimum of the longest observed event times in both groups was used (`=string(`tmax',"%4.2f")')."
 	}
 	
 	return scalar tmax=`tmax'

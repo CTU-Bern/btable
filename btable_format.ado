@@ -1,4 +1,4 @@
-*! version 1.0.2 01apr2021
+*! version 1.0.3 09apr2021
 cap program drop btable_format
 program btable_format, nclass
 
@@ -3311,12 +3311,11 @@ if !_rc {
 	local outm = subinstr("`outm'","prop","proportion",.)
 	local outm = subinstr("`outm'","%%","%",.) 
 } 
-else {
+if "`ftm'"=="" {
 	local meas nlev perc
 	local ftm % (%%)
 	local outm n (%)
 }
-
 
 foreach var of varlist ntot* {
 	

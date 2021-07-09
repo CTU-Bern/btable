@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 1.0.0  26jan2021}{...}
+{* *! version 1.0.1  28apr2021}{...}
 {hline}
 {cmd:help empty_line}
 {hline}
@@ -13,7 +13,7 @@
 {title:Syntax}
 
 {p 4 6 2}
-{cmdab:empty_line} {ifin} [{cmd:,} {opth gen:erate(newvar)} {opth position(string)}]
+{cmdab:empty_line} {ifin} [{cmd:,} {opth g:enerate(newvar)} {opth pos:ition(string)}]
 
 {marker description}{...}
 {title:Description}
@@ -27,11 +27,11 @@
 {p 4 6 2}
 
 {phang}
-{opth generate(newvar)} creates new variable {it:newvar} containing {cmd:0} if the observation
+{opth g:enerate(newvar)} creates new variable {it:newvar} containing {cmd:0} if the observation
 originally appeared in the dataset and {cmd:1} if the observation is inserted.
 
 {phang}
-{opth position(string)}} specifies whether the observation is inserted {it:after}(default) or {it:before} 
+{opth pos:ition(string)}} specifies whether the observation is inserted {it:after}(default) or {it:before} 
 	the observation specified by {cmd:in} or {cmd:if}.
 
 

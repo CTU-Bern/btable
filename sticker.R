@@ -18,7 +18,7 @@ icon <- ggplot() +
 
 s <- sticker(icon, package="",
              s_x=1, s_y=1.15, s_width=1.8, s_height=2,
-             filename="man/figures/sticker.png",
+             filename="sticker.png",
              h_fill = colorRampPalette(c("white", CTUtemplate::unibeRed()))(6)[3],
              h_color = CTUtemplate::unibeRed(),
              h_size = 2,

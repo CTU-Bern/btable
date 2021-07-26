@@ -1,6 +1,6 @@
 _v. 1.0.8_  
 
-`btable`
+`btable` <img src='sticker.png' align="right" height="200">
 ========
 
 Summary tables are frequently constructed during data analysis either to get an overview 

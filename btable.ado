@@ -1,4 +1,4 @@
-*! version 1.0.1 29mar2021
+*! version 1.0.2 31aug2021
 cap program drop btable
 program btable, nclass
         
@@ -1518,6 +1518,9 @@ foreach var of local varlist {
 			if strpos("`testlist2'","fisher")>0 {
 				qui cap tab `var' `by' if `touse2', exact
 				local p_fi=r(p_exact)
+				if _rc == 910 {
+					dis as text "Memory limit for Fisher's exact test exceeded, p-value not available"
+				}
 	
 				if "`denominator'"=="" {
 					cap assert !missing(`var') if `touse2' & !missing(`by')

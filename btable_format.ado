@@ -1,4 +1,4 @@
-*! version 1.0.3 09apr2021
+*! version 1.0.4 10oct2022
 cap program drop btable_format
 program btable_format, nclass
 
@@ -1001,15 +1001,15 @@ forvalues mrow = 1/`nrows' {
 		else {
 			qui replace `ft_type_effectv'="rd% (rd_lci to rd_uci%)" if vtype=="cat" & missing(`ft_type_effectv')
 		}
-		qui replace `ft_type_effectv'="meand (meand_lci - meand_uci)" ///
+		qui replace `ft_type_effectv'="meand (meand_lci to meand_uci)" ///
 			if vtype=="conti" & missing(`ft_type_effectv') & strpos(`ft_typev',"mean")>0
-		qui replace `ft_type_effectv'="mws (mws_lci - mws_uci)" ///
+		qui replace `ft_type_effectv'="mws (mws_lci to mws_uci)" ///
 			if vtype=="conti" & missing(`ft_type_effectv') & strpos(`ft_typev',"median")>0
-		qui replace `ft_type_effectv'="meand (meand_lci - meand_uci)" ///
+		qui replace `ft_type_effectv'="meand (meand_lci to meand_uci)" ///
 			if vtype=="conti" & missing(`ft_type_effectv')
 			
-		qui replace `ft_type_effectv'="irr (irr_lci - irr_uci)" if vtype=="count" & missing(`ft_type_effectv')
-		qui replace `ft_type_effectv'="hr (hr_lci - hr_uci)" if vtype=="tte" & missing(`ft_type_effectv')
+		qui replace `ft_type_effectv'="irr (irr_lci to irr_uci)" if vtype=="count" & missing(`ft_type_effectv')
+		qui replace `ft_type_effectv'="hr (hr_lci to hr_uci)" if vtype=="tte" & missing(`ft_type_effectv')
 
 		
 		*generate vars to choose measure
@@ -2662,7 +2662,7 @@ if strpos("`ft'",".")>0 {
 *standard formats
 if "`ft'"=="" {
 	if inlist("`type'","","ci") &  "`type'" != "ci_range" {
-		local ft="% (% - %)"
+		local ft="% (% to %)"
 	}
 	if "`type'"=="mean" {
 		local ft="% (%)"

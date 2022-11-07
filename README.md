@@ -1,4 +1,4 @@
-_v. 1.0.10_  
+_v. 1.1.0_  
 
 `btable` <img src='sticker.png' align="right" height="200">
 ========

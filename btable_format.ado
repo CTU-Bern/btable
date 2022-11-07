@@ -1,4 +1,4 @@
-*! version 1.0.4 10oct2022
+*! version 1.1.0 07nov2022
 cap program drop btable_format
 program btable_format, nclass
 
@@ -12,6 +12,7 @@ syntax using [, clear ///
 	digits_effect(string) ///
 	digits_type(string) maxdec(string) ///
 	digits_type_effect(string) maxdec_effect(string) ///
+	format_desc(string) format_effect(string) ///
 	PERCentage(string) ABBReviation ///
 	test(string)  ///
 	p_format(string) p_digits(string) p_breaks(string) p_all  /// p_lab 
@@ -116,6 +117,22 @@ foreach k of local key {
 	}
 }				
 
+*digits option not active if format is given
+local opts digits digits_type maxdec
+foreach opt of local opts {
+	if "`format_desc'"!="" & "``opt''"!="" {
+		dis as text "Option format_desc takes precedence over `opt'."
+	}
+}
+
+local opts digits_effect digits_type_effect maxdec_effect
+foreach opt of local opts {
+	if "`format_effect'"!="" & "``opt''"!="" {
+		dis as text "Option format_effect takes precedence over `opt'."
+	}
+}
+
+
 
 restore
 if `exit'==1 {
@@ -151,6 +168,16 @@ if "`inset_row'"=="none" {
 	local inset_row = ""
 }
 
+*use leading 0 in default digits format
+local lead0_desc = 0
+local lead0_effect = 0
+//if "`format_desc'"=="" {
+//	local lead0_desc = 1
+//}
+//if "`format_effect'"=="" {
+//	local lead0_effect = 1
+//}
+
 
 *load data						
 use `using', `clear'
@@ -184,7 +211,7 @@ foreach el of local elist {
 
 if `crc'==`counter' {
 	local noeffect="yes"
-	if  "`digits_effect'" !="" | "`type_effect'" != "" | "`ft_effect'" != "" {
+	if  "`digits_effect'" !="" | "`type_effect'" != "" | "`ft_effect'" != "" | "`format_effect'" != "" {
 		dis as text "No effects column in input data, all effect options ignored."
 	}
 }	
@@ -644,7 +671,8 @@ qui gen `varname_sp' = " " + varname + " "
 tempvar vtype_sp
 qui gen `vtype_sp' = " " + vtype + " "
 
-local inptypelist ft_type ft_type_effect test digits digits_effect digits_type digits_type_effect maxdec maxdec_effect
+local inptypelist ft_type ft_type_effect test digits digits_effect digits_type digits_type_effect ///
+	maxdec maxdec_effect format_desc format_effect
 
 *tokenize ft_type, ft_type_effect, test digits, ...
 
@@ -741,6 +769,7 @@ forvalues mrow = 1/`nrows' {
 	tempvar digits_typev
 	tempvar maxdecv
 	tempvar collapselevv
+	tempvar format_descv
 	
 	*ft_type
 	**************
@@ -813,6 +842,23 @@ forvalues mrow = 1/`nrows' {
 		local wvlist `wvlist' `w`j''
 	}
 	
+	
+	*digits via format_desc 
+	***************************
+	genvars2, input(`format_desc') gen(`format_descv') addmeas(miss)
+	
+	//if only one word
+	local fwc: word count `format_desc'
+	if `fwc'==1 {
+		qui replace  `format_descv' = "`format_desc'" if missing(`format_descv')
+		local format_miss `format_desc'
+	}
+	
+	
+	*defaults:
+	//%8.2g, 2 significant digits, convertng to e format of more than 6
+	//qui replace `format_descv' = "%8.2g" if missing(`format_descv')
+	//given by digits.
 	
 	*digits
 	****************
@@ -922,7 +968,22 @@ forvalues mrow = 1/`nrows' {
 		local maxdec_miss 2
 	}
 	
+	*via format_desc
+	if strpos("`format_desc'","miss")>0 {
+		local wscat = substr("`format_desc'",strpos("`format_desc'","miss"),.)
+		local format_miss: word 2 of `wscat'
+	}
+	else {
+		if strpos("`format_desc'","cat")>0 {
+			local wscat = substr("`format_desc'",strpos("`format_desc'","cat"),.)
+			local format_miss: word 2 of `wscat'
+		}
+	}	
 	
+	//dis "`format_miss'"
+	//list varname `format_descv'
+
+
 	*collapse: variables from original file
 	**********
 	if "`collapse'" != "" {	
@@ -987,6 +1048,7 @@ forvalues mrow = 1/`nrows' {
 		tempvar digits_effectv
 		tempvar digits_type_effectv
 		tempvar maxdec_effectv
+		tempvar format_effectv
 
 		
 		*ft_type_effect
@@ -1090,11 +1152,22 @@ forvalues mrow = 1/`nrows' {
 			local ewvlist `ewvlist' `ew`j''
 		}
 		
-
+		
+		*digits via format_desc 
+		***************************
+		genvars2, input(`format_effect') gen(`format_effectv') addmeas(miss)
+		
+		//if only one word
+		local fwc: word count `format_effect'
+		if `fwc'==1 {
+			qui replace  `format_effectv' = "`format_effect'" if missing(`format_effectv')
+		}
+		
+		
+		
 		*digits_effect
+		*************	
 		genvars2, input(`digits_effect') gen(`digits_effectv') nostring
-		//from digits if missing 
-		qui replace `digits_effectv' = `digitsv' if missing(`digits_effectv')
 		
 		genvars2, input(`digits_type_effect') gen(`digits_type_effectv')
 		//list varname `digits_type_effectv'
@@ -1120,8 +1193,12 @@ forvalues mrow = 1/`nrows' {
 		//list varname vtype `digits_type_effectv' `maxdec_effectv'
 		
 		*default
-		//use default from formatting4
+		//1) from desc if given 
+		qui replace `format_effectv' = `format_descv' if missing(`format_effectv') & missing(`digits_effectv')
+		qui replace `digits_effectv' = `digitsv' if missing(`digits_effectv')
 		
+		//2) default from formatting4 otherwise
+
 		*test
 		**********
 		genvars2, gen(`testv') input(`test')
@@ -1244,11 +1321,12 @@ forvalues mrow = 1/`nrows' {
 		tempvar nomiss
 		qui egen `nomiss' = rowmiss(`vuselist')
 			
-		//list varname `vuselist' `ftv' vtype `intpos' `digitsv'
+		//list varname `vuselist' `ftv' vtype `intpos' `digitsv' `format_descv'
 		
 		qui formatting4 `vuselist' if `nomiss'!=`mtypemax', gen(out_`na'`genadd') ///  
 					ft(`ftv') digits(`digitsv') digits_type(`digits_typev') maxdec(`maxdecv') ///
-					type(vtype) intpos(`intpos') catdigits0(`catdigits0')		
+					type(vtype) intpos(`intpos') catdigits0(`catdigits0') ///
+					format(`format_descv') lead0(`lead0_desc')
 		cap drop perc*
 		
 		qui replace out_`na'`genadd' = subinstr(out_`na'`genadd',"`a'","%",.)
@@ -1292,7 +1370,8 @@ forvalues mrow = 1/`nrows' {
 		
 		qui formatting4 `vuselist' if `nomiss' != 3, gen(out_d`genadd')  ///
 				ft(`ft_effectv') digits(`digits_effectv') ///  type(`type_effectv')
-				digits_type(`digits_type_effectv') maxdec(`maxdec_effectv') catdigits0(`catdigits0')		
+				digits_type(`digits_type_effectv') maxdec(`maxdec_effectv') catdigits0(`catdigits0') ///
+				format(`format_effectv') lead0(`lead0_effect')
 		
 		//list varname `vuselist' out_d`genadd' `digits_effectv' `maxdecv' `digits_type_effectv' 
 	}
@@ -1650,7 +1729,7 @@ if "`p_all'"=="" {
 apply_design_var, nrowvar(`nrowvar') design(`design') inset_row("`inset_row'") inset("`inset'") ///
 	nonmiss(`nonmiss') varname_sp(`varname_sp') denom(`denom') ///
 	namemiss(`namemiss') digits_miss(`digits_miss') digits_type_miss(`digits_type_miss') maxdec_miss(`maxdec_miss') ///
-	ft_type(`ft_type') catdigits0(`catdigits0')
+	ft_type(`ft_type') catdigits0(`catdigits0') format_miss(`format_miss')
 	
 	
 *headers
@@ -2246,7 +2325,7 @@ cap program drop formatting4
 program formatting4, nclass
 version 16
 syntax varlist [if] [in], GENerate(name) [ft(varname) digits(varname) digits_type(varname) maxdec(varname) ///
-	type(varname) intpos(varname) CATDigits0(string)]
+	type(varname) intpos(varname) CATDigits0(string) format(varname) lead0(string)]
 
 tokenize `varlist'
 marksample touse, novarlist
@@ -2268,12 +2347,12 @@ forvalues v = 1/`wc' {
 }
 local wc = `wc2'
 
-local vars ft digits_type digits maxdec 
+local vars ft digits_type digits maxdec format
 foreach v of local vars {
 	tempvar `v't
 	cap confirm variable ``v''
 	if _rc {
-		if ("`v'"=="digits_type") {
+		if ("`v'"=="digits_type" | "`v'"=="format") {
 			qui gen ``v't' = ""
 		}
 		else {		
@@ -2414,8 +2493,7 @@ forvalues i=1/`wc' {
 	qui gen `le`i''=.
 	qui gen `le2`i''=.
 	qui gen `digform`i''=""
-		
-	
+			
 	*digits not given: 
 	
 	qui replace `le`i''=length(string(abs(``i''),"%20.0f")) if  missing(`digitst')
@@ -2468,8 +2546,12 @@ forvalues i=1/`wc' {
 	qui replace `digform`i'' = "%20." + string(`ndig`i'') + "f" if !missing(`ndig`i'')  & `ndig`i''<=`maxdect'
 	qui replace `digform`i'' = "%20." + string(`maxdect') + "f" if !missing(`ndig`i'')  & `ndig`i''<=`maxdect'	
 		
-		
-	//replace integers if type==cat | type == count
+	
+	*format given:
+	qui replace `digform`i'' = `formatt' if `formatt'!="" & `touse'==1
+	
+	
+	*replace integers if type==cat | type == count
 	cap confirm variable `type'
 	if !_rc {
 		tempvar dig0
@@ -2488,14 +2570,19 @@ forvalues i=1/`wc' {
 		}
 	}
 	
+	
 	*generate output
 	qui replace `generate'=subinstr(`generate',"%",string(``i'',`digform`i''),1) if `touse'==1		
 }
 
 *re-introduce
 qui replace `generate'=subinstr(`generate',"`a'","%",.) if `touse'==1
-	
-	
+
+*lead0 
+if "`lead0'"=="1" {
+	lead0 `generate' if `touse', replace
+}	
+
 end
 
 
@@ -2506,7 +2593,7 @@ cap program drop formatting2
 program formatting2, nclass
 version 16
 syntax varlist [if] [in], GENerate(name) [type(string) digits(string) digits_type(string) maxdec(string) ///
-	rm_perc add_perc ft(string) dig_force0(string) CATDigits0(string)]
+	rm_perc add_perc ft(string) dig_force0(string) CATDigits0(string) format(string)]
 
 tokenize `varlist'
 marksample touse, novarlist
@@ -2680,99 +2767,108 @@ if "`ft'"=="" {
 		local ft="% (%`a')"
 	}
 }
-
+	
+	
 *format continuous
 if inlist("`type'","","ci","mean","median") {
-
-	*digits
-	if "`digits'"==""  {
-		if inlist("`digits_type'","sigdig") {
-			forvalues i=1/`wc' {
-				tempvar le`i'
-				tempvar digform`i'
-				qui gen `le`i''=length(string(abs(``i''),"%20.0f"))
-				qui gen `digform`i''="%20.2f" if `le`i''==1
-				qui replace `digform`i''="%20.1f" if `le`i''==2
-				qui replace `digform`i''="%20.0f" if `le`i''>=3
-				if "`ndig`i''"!="" {
-					qui replace `digform`i''="%20.`ndig`i''f"
-				}
-			}	
+	
+	*format given 
+	if "`format'"!="" {
+	forvalues i=1/`wc' {
+		tempvar digform`i'
+		qui gen `digform`i'' = "`format'"
 		}
-		else {
-			forvalues i=1/`wc' {
-				tempvar le`i'
-				tempvar digform`i'
-				qui gen `le`i''=length(string(abs(`1'),"%20.0f"))
-				qui gen `digform`i''="%20.2f" if `le`i''==1
-				qui replace `digform`i''="%20.1f" if `le`i''==2
-				qui replace `digform`i''="%20.0f" if `le`i''>=3
-				if "`ndig`i''"!="" {
-					qui replace `digform`i''="%20.`ndig`i''f"
-				}
-			}		
-		}
-	}		
-	else {	
-		if inlist("`digits_type'","sigdig") {
-			forvalues i=1/`wc' {
-				tempvar le`i'
-				tempvar digform`i'
-				qui gen `le`i''=`digits'-length(string(abs(``i''),"%20.0f"))
-				qui replace `le`i''=0 if `le`i''<0
-				tempvar msum
-				qui gen `msum'=abs(``i'')
-				qui sum  `msum'
-				local min=`r(min)'
-				local limit=1
-				while `min'<`limit' {
-					qui replace `le`i''=`le`i''+1 if abs(``i'')<`limit'
-					local limit=`limit'/10
-				}
-				qui levelsof  `le`i'', local(lev)
-				qui gen `digform`i''=""
-				foreach l of local lev {
-					if `l'<`maxdec' {
-						qui replace `digform`i''="%20.`l'f" if `le`i''==`l'
-					} 
-					else {
-						qui replace `digform`i''="%20.`maxdec'f" if `le`i''==`l'
-					}
-				}
-				if "`ndig`i''"!="" {
-					qui replace `digform`i''="%20.`ndig`i''f"
-				}
-			}	
-		}
-		else {
-			forvalues i=1/`wc' {
-				tempvar digform`i'
-				if `digits'<`maxdec' {
-					qui gen `digform`i''="%20.`digits'f"
-				}	
-				else {
-					qui gen `digform`i''="%20.`maxdec'f"
-				}
-				
-				if "`ndig`i''"!="" {
-					if `ndig`i''<`maxdec' {
+	}
+	else {
+		
+		*digits
+		if "`digits'"==""  {
+			if inlist("`digits_type'","sigdig") {
+				forvalues i=1/`wc' {
+					tempvar le`i'
+					tempvar digform`i'
+					qui gen `le`i''=length(string(abs(``i''),"%20.0f"))
+					qui gen `digform`i''="%20.2f" if `le`i''==1
+					qui replace `digform`i''="%20.1f" if `le`i''==2
+					qui replace `digform`i''="%20.0f" if `le`i''>=3
+					if "`ndig`i''"!="" {
 						qui replace `digform`i''="%20.`ndig`i''f"
 					}
+				}	
+			}
+			else {
+				forvalues i=1/`wc' {
+					tempvar le`i'
+					tempvar digform`i'
+					qui gen `le`i''=length(string(abs(`1'),"%20.0f"))
+					qui gen `digform`i''="%20.2f" if `le`i''==1
+					qui replace `digform`i''="%20.1f" if `le`i''==2
+					qui replace `digform`i''="%20.0f" if `le`i''>=3
+					if "`ndig`i''"!="" {
+						qui replace `digform`i''="%20.`ndig`i''f"
+					}
+				}		
+			}
+		}		
+		else {	
+			if inlist("`digits_type'","sigdig") {
+				forvalues i=1/`wc' {
+					tempvar le`i'
+					tempvar digform`i'
+					qui gen `le`i''=`digits'-length(string(abs(``i''),"%20.0f"))
+					qui replace `le`i''=0 if `le`i''<0
+					tempvar msum
+					qui gen `msum'=abs(``i'')
+					qui sum  `msum'
+					local min=`r(min)'
+					local limit=1
+					while `min'<`limit' {
+						qui replace `le`i''=`le`i''+1 if abs(``i'')<`limit'
+						local limit=`limit'/10
+					}
+					qui levelsof  `le`i'', local(lev)
+					qui gen `digform`i''=""
+					foreach l of local lev {
+						if `l'<`maxdec' {
+							qui replace `digform`i''="%20.`l'f" if `le`i''==`l'
+						} 
+						else {
+							qui replace `digform`i''="%20.`maxdec'f" if `le`i''==`l'
+						}
+					}
+					if "`ndig`i''"!="" {
+						qui replace `digform`i''="%20.`ndig`i''f"
+					}
+				}	
+			}
+			else {
+				forvalues i=1/`wc' {
+					tempvar digform`i'
+					if `digits'<`maxdec' {
+						qui gen `digform`i''="%20.`digits'f"
+					}	
 					else {
-						qui replace `digform`i''="%20.`maxdec'f"
+						qui gen `digform`i''="%20.`maxdec'f"
+					}
+					if "`ndig`i''"!="" {
+						if `ndig`i''<`maxdec' {
+							qui replace `digform`i''="%20.`ndig`i''f"
+						}
+						else {
+							qui replace `digform`i''="%20.`maxdec'f"
+						}
 					}
 				}
 			}
 		}
-	}
-		
-
+	}	
+	
 	//force 0 option	
 	forvalues i=1/`wc' {	
 		if inlist("`i'","`dig_force0'") {
 			qui replace `digform`i''="%20.0f"
 		}
-	
+		
 		//catdigits0, only if type==""
 		if "`type'"=="" {
 			if "`catdigits0'"!="" {
@@ -2825,82 +2921,92 @@ if "`type'" == "cat" {
 	local end="%)"
 	}
 	
-	//digits
-	if "`digits'"=="" {
-		if inlist("`digits_type'","sigdig") {
-			tempvar le
-			tempvar digform
-			qui gen `le'=length(string(`ns'/`nt'*100,"%20.0f"))
-			
-			qui gen `digform'=""
-			if `maxdec'>=2 | missing(`maxdec') {
-				qui replace `digform'="%20.2f" if `le'==1
-				qui replace `digform'="%20.1f" if `le'==2
-				qui replace `digform'="%20.0f" if `le'>=3
-			} 
-			if `maxdec'==1 {
-				qui replace `digform'="%20.1f" if inlist(`le',1,2)
-				qui replace `digform'="%20.0f" if `le'>=3
-			}
-			if `maxdec'==0 {
-				qui replace `digform'="%20.0f"
-			}
-		
-			if "`ndig'"!="" {
-				qui replace `digform'="%20.`ndig'f"
-			}	
-		}
-		else {
-			tempvar digform
-			qui gen `digform'="%20.0f"
+	*format given 
+	if "`format'"!="" {
+	forvalues i=1/`wc' {
+		tempvar digform
+		qui gen `digform' = "`format'"
 		}
 	}
 	else {
-		if inlist("`digits_type'","sigdig") {
-			tempvar le
-			tempvar digform
-			qui gen `le'=`digits'-length(string(`ns'/`nt'*100,"%20.0f"))
-			qui replace `le'=0 if `le'<0
-			tempvar rper
-			qui gen `rper' = `ns'/`nt'*100
-			qui sum `rper'
-			local min=min(abs(r(min)),abs(r(max)))
-			local limit=1
-			if `min'!=0 {
-				while `min'<`limit' {
-					qui replace `le'=`le'+1 if `rper'<`limit'
-					local limit=`limit'/10
-				}
-			}
-			qui levelsof  `le', local(lev)
-			qui gen `digform'=""
-			foreach l of local lev {
-				if `l'<`maxdec' {
-					qui replace `digform'="%20.`l'f" if `le'==`l'
+		
+		//digits
+		if "`digits'"=="" {
+			if inlist("`digits_type'","sigdig") {
+				tempvar le
+				tempvar digform
+				qui gen `le'=length(string(`ns'/`nt'*100,"%20.0f"))
+				
+				qui gen `digform'=""
+				if `maxdec'>=2 | missing(`maxdec') {
+					qui replace `digform'="%20.2f" if `le'==1
+					qui replace `digform'="%20.1f" if `le'==2
+					qui replace `digform'="%20.0f" if `le'>=3
 				} 
-				else {
-					qui replace `digform'="%20.`maxdec'f" if `le'==`l'
+				if `maxdec'==1 {
+					qui replace `digform'="%20.1f" if inlist(`le',1,2)
+					qui replace `digform'="%20.0f" if `le'>=3
 				}
-			}
-			if "`ndig'"!="" {
-				qui replace `digform'="%20.`ndig'f"
-			}
-		}	
-		else {
-			tempvar digform
-			if `digits'<`maxdec'  {
-				qui gen `digform'="%20.`digits'f"
+				if `maxdec'==0 {
+					qui replace `digform'="%20.0f"
+				}
+			
+				if "`ndig'"!="" {
+					qui replace `digform'="%20.`ndig'f"
+				}	
 			}
 			else {
-				qui gen `digform'="%20.`maxdec'f"
+				tempvar digform
+				qui gen `digform'="%20.0f"
 			}
-			
-			if "`ndig'"!="" {
-				if `ndig'<`maxdec'  {
+		}
+		else {
+			if inlist("`digits_type'","sigdig") {
+				tempvar le
+				tempvar digform
+				qui gen `le'=`digits'-length(string(`ns'/`nt'*100,"%20.0f"))
+				qui replace `le'=0 if `le'<0
+				tempvar rper
+				qui gen `rper' = `ns'/`nt'*100
+				qui sum `rper'
+				local min=min(abs(r(min)),abs(r(max)))
+				local limit=1
+				if `min'!=0 {
+					while `min'<`limit' {
+						qui replace `le'=`le'+1 if `rper'<`limit'
+						local limit=`limit'/10
+					}
+				}
+				qui levelsof  `le', local(lev)
+				qui gen `digform'=""
+				foreach l of local lev {
+					if `l'<`maxdec' {
+						qui replace `digform'="%20.`l'f" if `le'==`l'
+					} 
+					else {
+						qui replace `digform'="%20.`maxdec'f" if `le'==`l'
+					}
+				}
+				if "`ndig'"!="" {
 					qui replace `digform'="%20.`ndig'f"
 				}
+			}	
+			else {
+				tempvar digform
+				if `digits'<`maxdec'  {
+					qui gen `digform'="%20.`digits'f"
+				}
 				else {
-					qui replace `digform'="%20.`maxdec'f"
+					qui gen `digform'="%20.`maxdec'f"
+				}
+				
+				if "`ndig'"!="" {
+					if `ndig'<`maxdec'  {
+						qui replace `digform'="%20.`ndig'f"
+					}
+					else {
+						qui replace `digform'="%20.`maxdec'f"
+					}
 				}
 			}
 		}
@@ -2912,6 +3018,7 @@ if "`type'" == "cat" {
 	qui replace `generate'=subinstr(`generate',"%",string(`ns',"%20.0f"),1)  if `touse'==1 
 	qui replace `generate'=subinstr(`generate',"%",string(`ns'/`nt'*100,`digform'),1) if `touse'==1
 	qui replace `generate'=subinstr(`generate',"`a'","%",.) if `touse'==1
+
 }
 
 
@@ -3216,7 +3323,7 @@ cap program drop apply_design_var
 program apply_design_var, nclass
 syntax [, nrowvar(varname) design(string) inset(string) inset_row(string) nonmiss(string) varname_sp(varname) ///
 	namemiss(string) denom(string) digits_miss(string) digits_type_miss(string) maxdec_miss(string) ///
-	ft_type(string) CATDigits0(string)]
+	ft_type(string) CATDigits0(string) format_miss(string)]
 
 
 if "`nrowvar'"=="" {
@@ -3345,12 +3452,12 @@ foreach var of varlist ntot* {
 		local vc `nlev' `perc'
 		local digforce 1
 	}
-	
+
 	//list varname `vc' `lastrow' `miss'
 	formatting2 `vc' if `lastrow'==1 & `miss'==1, ///
 		gen(`outh') ft(`ftm') ///
 		digits(`digits_miss') digits_type(`digits_type_miss') maxdec(`maxdec_miss') ///
-		dig_force0(`digforce') catdigits0(`catdigits0')
+		dig_force0(`digforce') catdigits0(`catdigits0') format(`format_miss')
 				
 	qui replace out_`na' = `outh' if `lastrow'==1 & `miss'==1
 	qui replace desc_info = "`outm'" if `lastrow'==1 & `miss'==1
@@ -3460,7 +3567,6 @@ qui gen `nc' = `expf' - `miss'
 
 
 *missings in last row		
-
 foreach var of local elist {
 	cap replace `var' = "" if  inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1
 }
@@ -3497,7 +3603,7 @@ foreach var of varlist ntot* {
 	formatting2 `vc' if  inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1, ///
 						gen(`outh') ft(`ftm') ///
 						digits(`digits_miss') digits_type(`digits_type_miss') maxdec(`maxdec_miss') ///
-						dig_force0(`digforce') catdigits0(`catdigits0')
+						dig_force0(`digforce') catdigits0(`catdigits0') format(`format_miss')
 						
 	qui replace out_`na' = `outh' if  inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1	
 	qui drop `nlev' `ntot' `prop' `perc' 
@@ -3789,3 +3895,30 @@ forvalues cw=1/`cwc' {
 end
 
 	
+/**********************************************************************************************************************/
+		
+***********************************
+*Program to add leading 0 to a string
+*****************************
+
+cap program drop lead0
+program lead0, nclass
+version 16
+syntax varname [if] [in], replace
+
+marksample touse, novarlist
+
+qui replace `varlist' =  ustrregexra(`varlist',"^\.","0.") if `touse'
+
+tempvar s1
+qui gen  `s1' = ustrregexs(0) if ustrregexm(`varlist',"[^0-9]+\.") & `touse'
+qui count if missing(`s1')
+while `r(N)'!=`=_N' {
+	qui replace `varlist' = ustrregexrf(`varlist',"[^0-9]+\.",subinstr(`s1',".","0.",1)) if `touse'
+	qui drop `s1'
+	qui gen `s1' = ustrregexs(0) if ustrregexm(`varlist',"[^0-9]+\.") & `touse'
+	qui count if missing(`s1')
+}
+
+end
+

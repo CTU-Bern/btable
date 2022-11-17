@@ -1,4 +1,4 @@
-*! version 1.1.0 07nov2022
+*! version 1.1.1 17nov2022
 cap program drop btable_format
 program btable_format, nclass
 
@@ -780,7 +780,7 @@ forvalues mrow = 1/`nrows' {
 	*defaults:
 	qui replace `ft_typev'="nlev (perc%)" if vtype=="cat" & missing(`ft_typev')
 	qui replace `ft_typev'="mean (sd)" if vtype=="conti" & missing(`ft_typev')
-	qui replace `ft_typev'="nevents (etime)" if vtype=="count" & missing(`ft_typev')
+	qui replace `ft_typev'="nevents/etime (ir)" if vtype=="count" & missing(`ft_typev')
 	qui replace `ft_typev'="nfails (stime)" if vtype=="tte" & missing(`ft_typev')
 	
 	qui replace `ft_typev'="" if vtype=="cat1"

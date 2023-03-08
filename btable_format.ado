@@ -1,4 +1,4 @@
-*! version 1.1.1 17nov2022
+*! version 1.1.2 08mar2023
 cap program drop btable_format
 program btable_format, nclass
 
@@ -2788,8 +2788,18 @@ if inlist("`type'","","ci","mean","median") {
 					tempvar le`i'
 					tempvar digform`i'
 					qui gen `le`i''=length(string(abs(``i''),"%20.0f"))
-					qui gen `digform`i''="%20.2f" if `le`i''==1
-					qui replace `digform`i''="%20.1f" if `le`i''==2
+					if `maxdec'>=2 {
+						qui gen `digform`i''="%20.2f" if `le`i''==1
+					} 
+					else {
+						qui gen `digform`i''="%20.`maxdec'f" if `le`i''==1
+					}
+					if `maxdec'>=1 {
+						qui replace `digform`i''="%20.1f" if `le`i''==2
+					}
+					else {
+						qui replace `digform`i''="%20.`maxdec'f" if `le`i''==2
+					}
 					qui replace `digform`i''="%20.0f" if `le`i''>=3
 					if "`ndig`i''"!="" {
 						qui replace `digform`i''="%20.`ndig`i''f"

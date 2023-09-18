@@ -1,4 +1,4 @@
-*! version 1.1.2 08mar2023
+*! version 1.1.3 18sep2023
 cap program drop btable_format
 program btable_format, nclass
 
@@ -739,7 +739,8 @@ forvalues mrow = 1/`nrows' {
 			}
 			else {
 				local `inptype' ``inptype'`mrow1''
-			}
+				local `inptype'`mrow' ``inptype'`mrow1''
+			} 
 		}
 		else {
 			local `inptype' ``inptype'`mrow''

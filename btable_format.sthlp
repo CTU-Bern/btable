@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 1.1.0  07nov2022}{...}
+{* *! version 1.2.0 01oct2023}{...}
 {hline}
 {cmd:help btable_format} {right:also see:  {help btable}}
 {hline}
@@ -25,10 +25,11 @@
 
 {syntab:Main}
 {synopt: {opt clear}}replace data in memory{p_end}
-{synopt: {opt ncol:(header)}}creates a column with the number of observation with the indicated {it:header}{p_end}
+{synopt: {opt ncol:(header)}}creates a column with the number of non-missing observation called {it:header}{p_end}
+{synopt: {opt nrow:(label)}}creates a row with the number of non-missing observation labelled {it:label}{p_end}
 {synopt: {cmdab:drop(}{it:{help btable_format##colspec:colspec}}{cmd:)}}columns to drop from the output table{p_end}
 {synopt: {opt nametot(string)}}name of the column with all entries, default is "Total"{p_end}
-{synopt: {opt nrow}}inserts an extra row for the total number of observations {p_end}
+{synopt: {opt nrowh:ead}}inserts an extra row for the total number of observations {p_end}
 {synopt:{cmdab:design(}{it:{help btable_format##designspec:designspec}}{cmd:)}}design of the table,
 	{it:column} (default), {it:row} or {it:missing}{p_end}
 {synopt: {opt inset(string)}}inset of category labels, default is "    " {p_end}
@@ -136,7 +137,11 @@ P-values are only available if {it:groupvar} used with {cmd:btable} had at least
 {opt clear} replace the data in memory
 
 {phang}
-{opt ncol:(header)} creates a column with the number of observation with the indicated {it:header}.
+{opt ncol:(header)} creates a column with the number of non-missing observation called {it:header}.
+
+{phang}
+{opt nrow:(label)} creates a row with the number of non-missing observation for each variable labelled {it:label}. 
+	Needs {cmd:design} {cmd:row} or {cmd:missing}.
 
 {marker colspec}{...}
 {phang}
@@ -150,7 +155,7 @@ P-values are only available if {it:groupvar} used with {cmd:btable} had at least
 {opt nametot(string)} defines the name of the column that contains all groups. The default is "Total". {p_end}
 		
 {phang}	
-{opt nrow} inserts an extra row for the total number of observations. The default is to show it in brackets 
+{opt nrowh:ead} inserts an extra row for the total number of observations. The default is to show it in brackets 
 	after the column label. {p_end}
 	
 {marker designspec}{...}
@@ -198,6 +203,7 @@ where {it:varspec} is {cmdab:cat}, {cmdab:conti}, {cmd:count}, {cmd:tte}, {it:va
 	Available descriptives are:
 
 {phang3}
+	{cmd:ntot} (total number of observation),
 	{cmd:mean}, {cmd:sd} (standard deviation), {cmd:meanlci} and {cmd:meanuci} (lower and upper confidence limits
 	for the mean), {cmd:median}, {cmd:lq} (lower quartile), {cmd:uq} (upper quartile), {cmd:iqr} (interquartile range),
 	{cmd:min}, {cmd:max}, {cmd:range} and {cmd:sum}	for continuous variables,
@@ -209,11 +215,13 @@ where {it:varspec} is {cmdab:cat}, {cmdab:conti}, {cmd:count}, {cmd:tte}, {it:va
 	and {cmd:prop} (proportion) and confidence intervals ({cmd:proplci} and {cmd:propuci})
 	for categorical variables,
 		
-{phang3}				
+{phang3}
+	{cmd:ntot} (total number of observation), 
 	{cmd:nevents} (number of events), {cmd:etime} (exposure time), and 
 	{cmd:ir} (incidence rate) and confidence intervals ({cmd:irlci} and {cmd:iruci}) for count variables,
 
-{phang3}			
+{phang3}	
+	{cmd:ntot} (total number of observation),		
 	{cmd:nfails} (number of failures), {cmd:stime} (follow-up time), 
 	{cmd:st50} (median survival time) and confidence intervals ({cmd:st50lci} and {cmd:st50uci}) or
 	lower and upper quartile ({cmd:st25} and {cmd:st75}), and 
@@ -552,6 +560,8 @@ Several maximal number of digits can be specified for a variable type or a speci
 {phang}{cmd:. btable_format using "excars", clear desc(conti median [lq, uq] mpg mean (sd)) drop(total effect)}{p_end}
 
 {phang}{cmd:. btable_format using "excars", clear ncol(non-missing) drop(total effect info)}{p_end}
+
+{phang}{cmd:. btable_format using "excars", clear nrow(non-missing) design(row) drop(total effect info)}{p_end}
 
 {phang}{cmd:. btable_format using "excars", clear design(missing) drop(total effect info)}{p_end}
 

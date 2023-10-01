@@ -3574,7 +3574,7 @@ if `nmax'>1 {
 	}
 } 
 
-//list varname levlabel desc_info vtype `nrow' `seq_exp'
+//list varname levlabel desc_info vtype `nnrow' `seq_exp'
 
 if "`design'"!="column" {
 	qui replace levlabel=levlabel + "`inset_row'" + desc_info[_n+1] if vtype=="cat1" & `nnrow'>1 & `nins'[_n+1]!=1
@@ -3582,8 +3582,7 @@ if "`design'"!="column" {
 	
 	qui replace levlabel=levlabel + "`inset_row'" + desc_info ///
 		if vtype=="cat1" & `nnrow'==1 & !missing(desc_info) & `seq_exp'==. 
-	qui replace levlabel=levlabel + "`inset_row'" + desc_info ///
-		if vtype=="cat1" & `nnrow'==1 & !missing(desc_info) & `seq_exp'==.	
+		
 }
 
 //collapsed

@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 1.0.1  10oct2022}{...}
+{* *! version 1.0.2 01oct2023}{...}
 {hline}
 {cmd:help btable} {right:also see:  {help btable_format}}
 {hline}
@@ -110,7 +110,8 @@ See {manhelp btable_format R:btable_format} for formatting the table after gener
 
 {pstd}
 Descriptives include 
-number of events (stored in variables starting with nlev),
+the toal number of observations (ntot) for all variables,
+number of events (nlev),
 	proportion of events (pr) and confidence interval of the proportion (prlci and pruci) for categorical variables, 
 mean (mean), median (p50), standard deviation (sd), quartiles (p25 and p75), interquartile range (iqr),
 	minimum (min), maximum (max), range (range), sum (sum) 

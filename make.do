@@ -13,7 +13,7 @@ do "00_masterfile.do"
 *generate make file 
 cd ".."
 
-make btable, replace toc pkg version(1.1.3)                           ///
+make btable, replace toc pkg version(1.2.0)                           ///
      license("Academic Free License v3.0")                                   ///
      author("Lukas Bütikofer")                                              ///
      affiliation("CTU Bern")                                                 ///

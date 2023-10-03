@@ -1,11 +1,11 @@
-*! version 1.1.3 18sep2023
+*! version 1.2.0 03oct2023
 cap program drop btable_format
 program btable_format, nclass
 
 version 16
 
 syntax using [, clear ///
-	ncol(string) drop(string) nametot(string) nrow  ///
+	ncol(string) drop(string) nametot(string) nrows(string) NROWhead ///
 	design(string) inset(string) inset_row(string) parse(string) ///
 	DEScriptive(string) EFFect(string) ///
 	DIGits(string)  CATDigits0(string) ///
@@ -706,12 +706,12 @@ foreach inptype of local inptypelist {
 qui replace `nrowvar'=`nrowvar'[_n+1] if varname==varname[_n+1] & vtype=="cat1"
 
 //count maximal number of measures
-local nrows=1
+local norows=1
 local ca = reverse(subinstr(reverse("`ca'"),",","",1))
 matrix CA = `ca'
 mata : st_matrix("CB", rowmax(st_matrix("CA")))
-if (CB[1,1]>`nrows') {
-	local nrows = CB[1,1]
+if (CB[1,1]>`norows') {
+	local norows = CB[1,1]
 }
 
 if `anyparse'==1 {
@@ -721,13 +721,20 @@ if `anyparse'==1 {
 		local design row
 	}
 }
+if "`nrows'"!="" {
+	cap assert inlist("`design'","missing","row","long")
+	if _rc {
+		dis as text "Design `design' not allowed with nrows, row is used."
+		local design row
+	}
+}
 	
 //nrows per variable?
 //list varname vtype `nrowvar'
-//dis "`nrows'"
+//dis "`norows'"
 //exit
  
-forvalues mrow = 1/`nrows' {
+forvalues mrow = 1/`norows' {
 	
 	foreach inptype of local inptypelist {
 		
@@ -1448,7 +1455,7 @@ forvalues mrow = 1/`nrows' {
 	qui replace `labels' = subinstr(`labels',"`a'","%",.)
 	qui replace `labels' = subinstr(`labels',"`rp'","%",.)
 	qui replace `labels' = subinstr(`labels',"nlev","n",.) if vtype=="cat"
-	qui replace `labels' = subinstr(`labels',"ntot","N",.) if vtype=="cat"
+	qui replace `labels' = subinstr(`labels',"ntot","N",.) //if vtype=="cat"
 	qui replace `labels' = subinstr(`labels',"nevents","n",.) if vtype=="count"
 	qui replace `labels' = subinstr(`labels',"etime","person-time",.) if vtype=="count"
 	qui replace `labels' = subinstr(`labels',"nfails","failures",.) if vtype=="tte"
@@ -1685,17 +1692,21 @@ qui replace levlabel=varname if missing(levlabel) & inlist(vtype,"cat1","conti",
 //list varname vtype levlabel nlev out_d*
 
 if "`collapse'" != "" {
-	
-	collapse_cat, collapse(`collapse') collapselevv(`collapselevv') design(`design')
 
-	if "`nobracket'"!="" {
-		foreach db of local nobracket {
-			qui replace levlabel=subinstr(levlabel," (`db')","",.)
-		}
+	if "`nrows'"!="" {
+		dis as text "Collapsing is not  possible if option nrows is specified."
 	}
-	
-	cap drop seq	
+	else {
+		collapse_cat, collapse(`collapse') collapselevv(`collapselevv') design(`design')
 
+		if "`nobracket'"!="" {
+			foreach db of local nobracket {
+				qui replace levlabel=subinstr(levlabel," (`db')","",.)
+			}
+		}
+		
+		cap drop seq	
+	}
 }
 
 
@@ -1715,7 +1726,7 @@ if "`p_all'"=="" {
 *design row or column or missing
 **************************
 //on level of locals
-//apply_design, design(`design') nrows(`nrows') inset_row("`inset_row'") inset("`inset'")
+//apply_design, design(`design') norows(`norows') inset_row("`inset_row'") inset("`inset'")
 
 //on level of variables
 //on level of vars
@@ -1730,7 +1741,7 @@ if "`p_all'"=="" {
 apply_design_var, nrowvar(`nrowvar') design(`design') inset_row("`inset_row'") inset("`inset'") ///
 	nonmiss(`nonmiss') varname_sp(`varname_sp') denom(`denom') ///
 	namemiss(`namemiss') digits_miss(`digits_miss') digits_type_miss(`digits_type_miss') maxdec_miss(`maxdec_miss') ///
-	ft_type(`ft_type') catdigits0(`catdigits0') format_miss(`format_miss')
+	ft_type(`ft_type') catdigits0(`catdigits0') format_miss(`format_miss') nrows(`nrows')
 	
 	
 *headers
@@ -1783,7 +1794,7 @@ if "`ncol'" != "" {
 
 	local insl 1
 	empty_line in 1, position("before")
-	if "`nrow'"=="" {
+	if "`nrowhead'"=="" {
 		qui replace ns_t="`nametot' (N = `nt')" in 1
 		qui replace out_t="`nametot' (N = `nt')" in 1
 		local nkeep ns_t
@@ -1835,7 +1846,7 @@ else {
 	local nkeep
 	local insl 1
 	empty_line in 1, position("before")
-	if "`nrow'"=="" {
+	if "`nrowhead'"=="" {
 		qui replace out_t="`nametot' (N = `nt')" in 1
 		if `ngroups'>=1 {
 			forvalues i=1/`ngroups' {
@@ -3334,7 +3345,7 @@ cap program drop apply_design_var
 program apply_design_var, nclass
 syntax [, nrowvar(varname) design(string) inset(string) inset_row(string) nonmiss(string) varname_sp(varname) ///
 	namemiss(string) denom(string) digits_miss(string) digits_type_miss(string) maxdec_miss(string) ///
-	ft_type(string) CATDigits0(string) format_miss(string)]
+	ft_type(string) CATDigits0(string) format_miss(string) nrows(string)]
 
 
 if "`nrowvar'"=="" {
@@ -3397,7 +3408,7 @@ if "`design'"=="missing"   {
 tempvar expf
 tempvar seq 
 tempvar srow
-tempvar nrow
+tempvar nnrow
  
 *cat
 ************
@@ -3417,7 +3428,7 @@ foreach var of local elist {
 	cap replace `var' = "" if `lastrow'==1 & `miss'==1
 }
 
- 
+
 cap genloc2, input(`ft_type') key(miss)
 if !_rc {
 	local meas `r(meas)'
@@ -3476,22 +3487,47 @@ foreach var of varlist ntot* {
 	qui drop `nlev' `ntot' `prop' `perc' 
 } 
 
+*add row for n
+tempvar nins 
+
+if "`nrows'"!="" {
+	qui replace `seq' = _n
+	qui expand 2 if vtype=="cat1", gen(`nins')
+	qui replace `seq' = `seq' + 0.01 if `nins'==1
+	qui sort `seq'
+	qui replace vtype="cat" if `nins'==1
+	
+	qui replace levlabel="`inset'" + "`nrows'" if `nins'==1
+	qui replace desc_info="`nrows'" if `nins'==1
+
+	foreach var of varlist ntot* {
+		local pos=strpos("`var'","_")+1
+		local na=substr("`var'",`pos',.)
+		qui replace out_`na' = string(nnonmiss_`na') if `nins'==1
+	}	
+}
+else {
+	qui gen `nins'=.
+}
+
 *expand for more than one descriptive
 qui replace `seq' = _n
 qui bysort varname (`seq'): gen `srow' = _n 
-qui bysort varname (`srow'): gen `nrow' = _N 
+qui bysort varname (`srow'): gen `nnrow' = _N 
 sort `seq'
+
+//list varname level vtype `nrowvar' `nnrow'
 
 qui gen `expf' = `nrowvar' if inlist(vtype,"cat","cat1")
 //for collapsed, additional row
-qui replace `expf' = `nrowvar' + 1 if `nrowvar'>1 & `nrow'==1 & inlist(vtype,"cat","cat1")
+qui replace `expf' = `nrowvar' + 1 if `nrowvar'>1 & `nnrow'==1 & inlist(vtype,"cat","cat1")
 
 tempvar expanded
 qui expand `expf', gen(`expanded')
 
 tempvar seq_exp
 qui bysort `seq' (`expanded'): gen `seq_exp' = _n if `expanded'==1
-qui replace `seq' = `seq' + `nrow' - `srow' + `srow'/`nrow' - 0.0000001  if `expanded'==1
+qui replace `seq' = `seq' + `nnrow' - `srow' + `srow'/`nnrow' - 0.0000001  if `expanded'==1
 sort `seq' `seq_exp'
 
 local nmax=1
@@ -3500,7 +3536,7 @@ if `r(N)' != 0 {
 	local nmax = `r(max)'
 }
 
-//list varname `srow' `nrow' `miss' `seq_exp'
+//list varname `srow' `nnrow' `miss' `seq_exp'
 cap ds pv
 if _rc {
 	qui ds out_? *_info
@@ -3514,47 +3550,49 @@ else {
 
 if `nmax'>1 {
 	tempvar norep
-	qui gen `norep' = 1 if `miss'==1 & `lastrow'==1
+	qui gen `norep' = 1 if (`miss'==1 & `lastrow'==1) | `nins'==1
 	
 	//collapsed with more than 1 row
 	foreach var of local vlist {
-		qui replace `var' = "" if `nrow'==1 & vtype=="cat1" & `nrowvar'>1 & `seq_exp'==.
+		qui replace `var' = "" if `nnrow'==1 & vtype=="cat1" & `nrowvar'>1 & `seq_exp'==.
 	
 	}
 	
 	forvalues k = 2/`nmax' {
 		foreach var of local vlist {
-			cap replace `var' = `var'_v`k' if `seq_exp'==`k' & `norep' != 1 & `nrow'!=1
+			cap replace `var' = `var'_v`k' if `seq_exp'==`k' & `norep' != 1 & `nnrow'!=1
 			
 			//collapses with more than 1 row
 			if `k'>2 {
 				local l=`k'-1
-				qui replace `var' = `var'_v`l' if `seq_exp'==`k' & `norep' != 1 & `nrow'==1
+				qui replace `var' = `var'_v`l' if `seq_exp'==`k' & `norep' != 1 & `nnrow'==1
 			}
 		}
 		//collapsed label
-		qui replace levlabel = "`inset'" + desc_info if `seq_exp'==`k' & `nrow'==1
+		qui replace levlabel = "`inset'" + desc_info if `seq_exp'==`k' & `nnrow'==1
 	
 	}
 } 
 
-//list varname levlabel desc_info vtype `nrow' `seq_exp'
+//list varname levlabel desc_info vtype `nnrow' `seq_exp'
 
 if "`design'"!="column" {
-	qui replace levlabel=levlabel + "`inset_row'" + desc_info[_n+1] if vtype=="cat1" & `nrow'>1
+	qui replace levlabel=levlabel + "`inset_row'" + desc_info[_n+1] if vtype=="cat1" & `nnrow'>1 & `nins'[_n+1]!=1
+	qui replace levlabel=levlabel + "`inset_row'" + desc_info[_n+2] if vtype=="cat1" & `nnrow'>1 & `nins'[_n+1]==1
+	
 	qui replace levlabel=levlabel + "`inset_row'" + desc_info ///
-		if vtype=="cat1" & `nrow'==1 & !missing(desc_info) & `seq_exp'==.
+		if vtype=="cat1" & `nnrow'==1 & !missing(desc_info) & `seq_exp'==. 
+		
 }
 
 //collapsed
-//qui replace levlabel=levlabel + "`inset_row'" + desc_info if vtype=="cat1" & `nrow'==1 
-
+//qui replace levlabel=levlabel + "`inset_row'" + desc_info if vtype=="cat1" & `nnrow'==1 
 
 
 cap drop `expf' 
 cap drop `seq'
 cap drop `srow'
-cap drop `nrow'
+cap drop `nnrow'
 cap drop `lastrow'
 
  
@@ -3567,19 +3605,29 @@ qui gen     `expf' = `nrowvar' if inlist(vtype,"conti","tte","count")
 qui replace `expf' = `nrowvar' + 1 + `miss' if `miss' == 1  & inlist(vtype,"conti","tte","count")
 qui replace `expf' = `nrowvar' + 1  if `miss' == 0 & `nrowvar'>1 & inlist(vtype,"conti","tte","count")
 
+if "`nrows'"!="" {
+	qui replace `expf' = `expf' + 1 if `expf'>2 & inlist(vtype,"conti","tte","count")
+	qui replace `expf' = `expf' + 2 if `expf'==1 & inlist(vtype,"conti","tte","count")
+}
+
 qui expand `expf'
 
 sort `seq'
 qui bysort varname (`seq'): gen `srow' = _n 
-qui bysort varname (`srow'): gen `nrow' = _N 
+qui bysort varname (`srow'): gen `nnrow' = _N 
 sort `seq' `srow'
 tempvar nc
 qui gen `nc' = `expf' - `miss'
 
+if "`nrows'"!="" {
+	qui replace `nc' = `nc' - 1
+	qui replace `srow' = 1.5 if `srow'==2
+	qui replace `srow' = `srow'-1 if `srow'>2
+}
 
 *missings in last row		
 foreach var of local elist {
-	cap replace `var' = "" if  inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1
+	cap replace `var' = "" if  inlist(vtype,"conti","tte","count") & `srow'==`nnrow' & `miss'==1
 }
 
 foreach var of varlist ntot* {
@@ -3611,19 +3659,40 @@ foreach var of varlist ntot* {
 		local digforce 1
 	}
 	
-	formatting2 `vc' if  inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1, ///
+	formatting2 `vc' if  inlist(vtype,"conti","tte","count") & `srow'==`nnrow' & `miss'==1, ///
 						gen(`outh') ft(`ftm') ///
 						digits(`digits_miss') digits_type(`digits_type_miss') maxdec(`maxdec_miss') ///
 						dig_force0(`digforce') catdigits0(`catdigits0') format(`format_miss')
 						
-	qui replace out_`na' = `outh' if  inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1	
+	qui replace out_`na' = `outh' if  inlist(vtype,"conti","tte","count") & `srow'==`nnrow' & `miss'==1	
 	qui drop `nlev' `ntot' `prop' `perc' 
 	
-	qui replace desc_info = "`outm'" if  inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1
+	qui replace desc_info = "`outm'" if  inlist(vtype,"conti","tte","count") & `srow'==`nnrow' & `miss'==1
 }
 	
 qui replace levlabel="`inset'" + "missing" + "`inset_row'" + desc_info  ///
-	 if inlist(vtype,"conti","tte","count") & `srow'==`nrow' & `miss'==1
+	 if inlist(vtype,"conti","tte","count") & `srow'==`nnrow' & `miss'==1
+
+
+*n in first row 
+if "`nrows'"!="" {
+	foreach var of local elist {
+		cap replace `var' = "" if  inlist(vtype,"conti","tte","count") & `srow'==1.5
+	}
+
+	//list varname varlabel vtype `srow'
+	
+	foreach var of varlist ntot* {	
+		local pos=strpos("`var'","_")+1
+		local na=substr("`var'",`pos',.)
+		qui replace out_`na' = string(nnonmiss_`na') ///
+			if inlist(vtype,"conti","tte","count") & `srow'==1.5
+	}
+	qui replace desc_info = "`nrows'" if  inlist(vtype,"conti","tte","count") & `srow'==1.5
+	qui replace levlabel="`inset'" + "`nrows'"   ///
+		if inlist(vtype,"conti","tte","count") & `srow'==1.5
+
+}
 
 
 *all the other rows

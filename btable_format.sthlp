@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 1.2.0 01oct2023}{...}
+{* *! version 1.2.0 03oct2023}{...}
 {hline}
 {cmd:help btable_format} {right:also see:  {help btable}}
 {hline}
@@ -26,10 +26,10 @@
 {syntab:Main}
 {synopt: {opt clear}}replace data in memory{p_end}
 {synopt: {opt ncol:(header)}}creates a column with the number of non-missing observation called {it:header}{p_end}
-{synopt: {opt nrow:(label)}}creates a row with the number of non-missing observation labelled {it:label}{p_end}
+{synopt: {opt nrows:(label)}}creates rows with the number of non-missing observations labelled {it:label}{p_end}
 {synopt: {cmdab:drop(}{it:{help btable_format##colspec:colspec}}{cmd:)}}columns to drop from the output table{p_end}
 {synopt: {opt nametot(string)}}name of the column with all entries, default is "Total"{p_end}
-{synopt: {opt nrowh:ead}}inserts an extra row for the total number of observations {p_end}
+{synopt: {opt nrow:head}}inserts an extra row for the total number of observations {p_end}
 {synopt:{cmdab:design(}{it:{help btable_format##designspec:designspec}}{cmd:)}}design of the table,
 	{it:column} (default), {it:row} or {it:missing}{p_end}
 {synopt: {opt inset(string)}}inset of category labels, default is "    " {p_end}
@@ -140,8 +140,9 @@ P-values are only available if {it:groupvar} used with {cmd:btable} had at least
 {opt ncol:(header)} creates a column with the number of non-missing observation called {it:header}.
 
 {phang}
-{opt nrow:(label)} creates a row with the number of non-missing observation for each variable labelled {it:label}. 
-	Needs {cmd:design} {cmd:row} or {cmd:missing}.
+{opt nrows:(label)} creates rows with the number of non-missing observations for each variable. 
+	The rows are labelled with {it:label}. 
+	Needs {cmd:design} {cmd:row} or {cmd:missing} (cmd:row is used by default).
 
 {marker colspec}{...}
 {phang}
@@ -155,7 +156,7 @@ P-values are only available if {it:groupvar} used with {cmd:btable} had at least
 {opt nametot(string)} defines the name of the column that contains all groups. The default is "Total". {p_end}
 		
 {phang}	
-{opt nrowh:ead} inserts an extra row for the total number of observations. The default is to show it in brackets 
+{opt nrow:head} inserts an extra row for the total number of observations. The default is to show it in brackets 
 	after the column label. {p_end}
 	
 {marker designspec}{...}
@@ -561,7 +562,7 @@ Several maximal number of digits can be specified for a variable type or a speci
 
 {phang}{cmd:. btable_format using "excars", clear ncol(non-missing) drop(total effect info)}{p_end}
 
-{phang}{cmd:. btable_format using "excars", clear nrow(non-missing) design(row) drop(total effect info)}{p_end}
+{phang}{cmd:. btable_format using "excars", clear nrows(non-missing) design(row) drop(total effect info)}{p_end}
 
 {phang}{cmd:. btable_format using "excars", clear design(missing) drop(total effect info)}{p_end}
 

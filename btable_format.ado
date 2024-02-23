@@ -1,4 +1,4 @@
-*! version 1.2.0 03oct2023
+*! version 1.2.1 23feb2024
 cap program drop btable_format
 program btable_format, nclass
 
@@ -2531,8 +2531,13 @@ forvalues i=1/`wc' {
 	//sigdig
 	tempvar msum
 	qui gen `msum'=abs(``i'')
-	qui sum  `msum'
-	local min=`r(min)'
+	cap sum  `msum'
+	if `r(N)'==0 {
+		local min=1
+	} 
+	else {
+		local min=`r(min)'
+	}	
 	local limit=1
 	while `min'<`limit' {
 		qui replace `le`i''=`le`i''+1 ///
